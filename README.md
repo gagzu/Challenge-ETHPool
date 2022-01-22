@@ -29,11 +29,11 @@ eñe y codifique un contrato para ETHPool, tome todas las suposiciones que neces
 Puede utilizar las herramientas de desarrollo que prefiera: Hardhat, Truffle, Brownie, Solidity, Vyper.
 
 **Recursos útiles:**
-- Documentos de solidez: (https://docs.soliditylang.org/en/v0.8.4)[https://docs.soliditylang.org/en/v0.8.4]
+- Documentos de solidez: [https://docs.soliditylang.org/en/v0.8.4](https://docs.soliditylang.org/en/v0.8.4)
 
-- Recurso educativo: (https://github.com/austintgriffith/scaffold-eth)[https://github.com/austintgriffith/scaffold-eth]
+- Recurso educativo: [https://github.com/austintgriffith/scaffold-eth](https://github.com/austintgriffith/scaffold-eth)
 
-- Inicio del proyecto: (https://github.com/abarmat/solidity-starter)[https://github.com/abarmat/solidity-starter]
+- Inicio del proyecto: [https://github.com/abarmat/solidity-starter](https://github.com/abarmat/solidity-starter)
 
 2) Escribir pruebas para el contrato:
     Asegúrese de que todo su código se pruebe correctamente
