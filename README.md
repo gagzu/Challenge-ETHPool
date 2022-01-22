@@ -23,8 +23,7 @@ Digamos que tenemos el usuario **A** y **B** y el equipo **T**.
 > ¿Qué pasa si sucede lo siguiente? A deposita, luego T deposita, luego B deposita, luego A retira y finalmente B retira. A debe recibir su depósito + todas las recompensas. B solo debe recibir su depósito porque las recompensas se enviaron al grupo antes de que participaran.
 
 ## Meta
-Dis
-eñe y codifique un contrato para ETHPool, tome todas las suposiciones que necesita para avanzar.
+Diseñe y codifique un contrato para ETHPool, tome todas las suposiciones que necesita para avanzar.
 
 Puede utilizar las herramientas de desarrollo que prefiera: Hardhat, Truffle, Brownie, Solidity, Vyper.
 
