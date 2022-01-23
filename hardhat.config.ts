@@ -5,9 +5,11 @@ import { task } from 'hardhat/config';
 import { HardhatUserConfig } from 'hardhat/types';
 
 // Plugins
+import 'hardhat-deploy';
 import '@typechain/hardhat';
 import 'hardhat-abi-exporter';
 import 'hardhat-gas-reporter';
+import 'hardhat-deploy-ethers';
 import 'hardhat-contract-sizer';
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-waffle';
@@ -63,8 +65,10 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, bre) => {
 // Config
 const config: HardhatUserConfig = {
   paths: {
-    sources: './contracts',
     tests: './test',
+    deploy: 'deploy',
+    sources: './contracts',
+    deployments: 'deployments',
     artifacts: './build/contracts',
   },
   solidity: {
@@ -129,6 +133,10 @@ const config: HardhatUserConfig = {
     runOnCompile: false,
     disambiguatePaths: true,
   },
+  namedAccounts: {
+    deployer: 0,
+    tokenOwner: 1,
+  },  
 }
 
 setupDefaultNetworkProviders(config)

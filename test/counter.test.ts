@@ -1,6 +1,5 @@
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
-import '@nomiclabs/hardhat-ethers'
 
 import { Counter__factory, Counter } from '../build/types'
 
