@@ -2,6 +2,7 @@
 
 pragma solidity ^0.8.7;
 
+import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 /// @title Challenge ETHPool
@@ -27,6 +28,31 @@ contract ETHPool is Ownable {
 	constructor() {
 		_teamMembers[msg.sender] = true;
 	}
+
+	/// @dev Add a member to the ETHPool team
+	function setTeamMember(address member) public onlyOwner {
+		require(member != address(0), "Invalid address");
+		require(!_teamMembers[member], "Member already registered");
+		_teamMembers[member] = true;
+	}
+
+	/**
+	 * @dev Check if the member is already registered
+	 * @param member Address of the new team member
+	*/
+	function checkMember(address member) public view returns(bool) {
+		return _teamMembers[member];
+	}
+
+	/**
+	 * @notice Allow users to deposit their ETH to receive rewards
+	*/
+	function stake() public payable {}
+
+	/**
+	 * @notice Allow users to withdraw their deposit and reward if applicable
+	*/
+	function unstake() public {}
 
 	/*
 	 * Depositar recompensa

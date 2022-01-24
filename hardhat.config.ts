@@ -135,7 +135,9 @@ const config: HardhatUserConfig = {
   },
   namedAccounts: {
     deployer: 0,
-    tokenOwner: 1,
+    user1: 1,
+    user2: 2,
+    user3: 3,
   },  
 }
 
