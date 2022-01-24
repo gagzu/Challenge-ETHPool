@@ -12,6 +12,7 @@
   "include": [
     "./test",
     "./deploy",
+    "./helpers",
     "./scripts",
     "./build/types",
     "hardhat.config.ts",
