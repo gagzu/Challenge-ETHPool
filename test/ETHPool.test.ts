@@ -122,4 +122,30 @@ describe('ETHPool', () => {
     });
   });
 
+  describe('Evaluating depositReward logic', () => {
+    it('The amount must be > 0', async () => {
+      const { contracts } = await setup();
+
+      await expect(
+        contracts.ETHPool.depositReward(0)
+      ).to.be.revertedWith('The amount must be > 0');
+    });
+
+    it('Should fail if the one depositing a reward is not a team member', async () => {
+      throw new Error('Not implemented');
+    })
+
+    it('should fail if the amount does not match the sent balance', async () => {
+      const { contracts } = await setup();
+
+      await expect(
+        contracts.ETHPool.depositReward(10, { value: 100 })
+      ).to.be.revertedWith('The amount does not match the balance sent');
+    });
+
+    it('Contract and pool balance correctly increase after depositing a reward', async () => {
+      throw new Error('not implemented');
+    })
+  })
+
 })
