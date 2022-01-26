@@ -1,9 +1,10 @@
 import { ETHPool } from '../build/types';
 import { expect } from './utils/chaiSetup';
 import { formatEther, parseEther } from 'ethers/lib/utils';
-import { setupUser } from '../helpers/ethers';
+import { getEventArgs, setupUser } from '../helpers/ethers';
 import { Accounts } from '../typescript/hardhat';
 import { deployments, ethers, getNamedAccounts } from 'hardhat';
+import { BigNumber } from 'ethers';
 
 async function setup () {
   await deployments.fixture(["ETHPool"]);
@@ -118,9 +119,62 @@ describe('ETHPool', () => {
 
     it('Users and pool balance should increment correctly', async () => {
       // TODO: staking balance with users A and B and verify that the balances are increased correctly
-      throw new Error('not implemented');
+      const { contracts, accounts } = await setup();
+      const { user1, user2 } = accounts;
+
+      const [
+        user1ConnectedContrat,
+        user2ConnectedContrat,
+        balanceBeforeStake,
+      ] = await Promise.all([
+        setupUser(user1, contracts),
+        setupUser(user2, contracts),
+        ethers.provider.getBalance(contracts.ETHPool.address),
+      ]);
+
+      const balanceToSend = parseEther('10');
+
+      // Hacemos staking con ambos usuarios pero la info de uno solo es suficiente para el resto del test
+      const users = await Promise.all([
+        user1ConnectedContrat.ETHPool.stake(balanceToSend, { value: balanceToSend }),
+        user2ConnectedContrat.ETHPool.stake(balanceToSend, { value: balanceToSend }),
+      ]);
+
+      const balanceAfterStake = await ethers.provider.getBalance(contracts.ETHPool.address);
+
+      const [ user1Tx ] = users;
+
+      const user1EventStaked = await getEventArgs(user1Tx, 'staked', contracts.ETHPool);
+      const user1PolId: BigNumber = user1EventStaked.poolId;
+
+      const [
+        user1Balance,
+        user2Balance
+      ] = await Promise.all([
+        await contracts.ETHPool.getUserBalancePerPoolById(user1, user1PolId),
+        await contracts.ETHPool.getUserBalancePerPoolById(user2, user1PolId),
+      ])
+
+      const user1PoolData = await contracts.ETHPool.pools(user1PolId);
+
+      expect(user1Balance).to.equal(balanceToSend);
+      expect(user2Balance).to.equal(balanceToSend);
+      expect(user1PoolData.balance).to.equal(balanceToSend.mul(users.length));
+      expect(balanceAfterStake).to.equal(balanceBeforeStake.add(balanceToSend.mul(users.length)));
     });
   });
+
+  describe('Evaluating claimReward logic', () => {
+    it('It should fail if the user has no rewards to claim', async () => {
+      const { contracts, accounts } = await setup();
+
+      const signedContracts = await setupUser(accounts.user1, contracts);
+
+      await expect(
+        signedContracts.ETHPool.claimReward()
+      ).to.be.revertedWith('You have no rewards to claim');
+    });
+  })
 
   describe('Evaluating depositReward logic', () => {
     it('The amount must be > 0', async () => {

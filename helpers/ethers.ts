@@ -12,3 +12,20 @@ export async function setupUser<T extends {[contractName: string]: Contract}>(
   }
   return user as {address: string} & T;
 }
+
+export async function getEventArgs(tx: any, eventName: string, contract: Contract) {
+  let receipt = await tx?.wait();
+  let args: any;
+  for (const index in receipt?.logs) {
+    try {
+      let event = contract.interface.parseLog(receipt.logs[index]);
+      let currentName = event.name;
+      if (eventName == currentName) {
+        args = event.args;
+        break;
+      }
+    } catch (error) {}
+  }
+
+  return args;
+}

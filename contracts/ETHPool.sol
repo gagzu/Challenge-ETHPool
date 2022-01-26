@@ -15,14 +15,20 @@ contract ETHPool is Ownable {
 	UpdateBalanceMethod constant STAKE = UpdateBalanceMethod.STAKE;
 	UpdateBalanceMethod constant DEPOSIT_REWARD = UpdateBalanceMethod.DEPOSIT_REWARD;
 
-	using Counters for Counters.Counter;
-	Counters.Counter private _poolIds;
+	event staked(address user, uint amount, uint poolId);
 
 	/// @dev General information of a user
 	struct User {
-		uint[] myPools;
 		uint balanceDeposited;
 		address payable beneficiary;
+	}
+
+	/// @dev User pool information
+	struct UserPool {
+		uint totalPools;
+		uint nextPoolIdToClaim;
+		/// @dev internal id => pool id
+		mapping (uint => uint) myPoolIds;
 	}
 
 	/// @dev Pool to store the information of a certain group of users
@@ -34,13 +40,16 @@ contract ETHPool is Ownable {
 	}
 
 	/// @dev pool id => pool data
-	mapping (uint => Pool) private _pools;
+	mapping (uint => Pool) public pools;
+
+	/// @dev user address => user pool information
+	mapping (address => UserPool) public poolUsers;
 
 	/// @dev any address => `true` if it belongs to the team
 	mapping (address => bool) private _teamMembers;
 
-	/// @dev user address => user data
-	mapping (address => User) private _users;
+	using Counters for Counters.Counter;
+	Counters.Counter private _poolIds;
 
 	/// @dev Throws if you call by any account that is not a team member
 	modifier onlyTeam {
@@ -62,28 +71,71 @@ contract ETHPool is Ownable {
 	receive() external payable {}
 
 	/// @dev Add a member to the ETHPool team
-	function setTeamMember(address member) public onlyOwner {
+	function setTeamMember(address member) external onlyOwner {
 		require(member != address(0), "Invalid address");
 		require(!_teamMembers[member], "Member already registered");
 		_teamMembers[member] = true;
+	}
+
+	function getUserBalancePerPoolById(address user, uint poolId) external view returns(uint) {
+		return pools[poolId].beneficiaries[user].balanceDeposited;
 	}
 
 	/**
 	 * @dev Check if the member is already registered
 	 * @param member Address of the new team member
 	*/
-	function checkMember(address member) public view returns(bool) {
+	function checkMember(address member) external view returns(bool) {
 		return _teamMembers[member];
+	}
+
+	/**
+	 * @notice Allow users to deposit their ETH to receive rewards
+	*/
+	function stake(uint amount) external payable validDeposit(amount) {
+		_updatebalancePools(STAKE);
+		emit staked(msg.sender, msg.value, _poolIds.current());
+	}
+
+	/**
+	 * @notice Allow users to claim their deposit and reward if applicable
+	**/
+	function claimReward() external view {
+		require(
+			poolUsers[msg.sender].totalPools > 0 &&
+			poolUsers[msg.sender].nextPoolIdToClaim <= poolUsers[msg.sender].totalPools,
+			"You have no rewards to claim"
+		);
+
+		Pool storage pool = pools[poolUsers[msg.sender].nextPoolIdToClaim];
+
+		uint percentageToClaim = (
+			pool.beneficiaries[msg.sender].balanceDeposited * 100
+		) / pool.balance / 100;
+		// TODO:
+		// calcular el porcentaje que le corresponde al usuario del pool
+		// enviar el saldo depositado y la recompensa al usuario
+		// actualizar la información del usuario y del pool
+
+		console.log("percentageToClaim", percentageToClaim);
+
+	}
+
+	/**
+	 * @dev Deposit reward for the last open pool
+	**/
+	function depositReward(uint amount) external payable onlyTeam validDeposit(amount) {
+		_updatebalancePools(DEPOSIT_REWARD);
 	}
 
 	/// @dev Determine if a pool has balance
 	function _poolHasBalance(uint poolId) private view returns(bool) {
-		return _pools[poolId].balance > 0;
+		return pools[poolId].balance > 0;
 	}
 
 	/// @dev Determine if a pool has reward deposited
 	function _poolHasReward(uint poolId) private view returns(bool) {
-		return _pools[poolId].rewards > 0;
+		return pools[poolId].rewards > 0;
 	}
 
 	/**
@@ -119,43 +171,35 @@ contract ETHPool is Ownable {
 		}
 	}
 
-	/**
-	 * @notice Allow users to deposit their ETH to receive rewards
-	*/
-	function stake(uint amount) public payable validDeposit(amount) {
-		_updatebalancePools(STAKE);
-	}
-
 	function _stake(uint poolId) private {
-		Pool storage p = _pools[poolId];
+		Pool storage p = pools[poolId];
 
 		p.balance += msg.value;
 
 		if(p.beneficiaries[msg.sender].balanceDeposited == 0) {
-			p.beneficiaries[msg.sender].myPools.push(poolId);
+			// p.beneficiaries[msg.sender].myPools.push(poolId);
 			p.beneficiaries[msg.sender].beneficiary = payable(msg.sender);
+
+			// poolUsers[msg.sender].myPools.push(poolId);
+			uint internalId = poolUsers[msg.sender].totalPools + 1;
+			poolUsers[msg.sender].myPoolIds[internalId] = poolId;
+
+			if(internalId == 1) {
+				poolUsers[msg.sender].nextPoolIdToClaim = internalId;
+			}
+
+			poolUsers[msg.sender].totalPools = internalId;
 		}
 
-		if(_users[msg.sender].beneficiary == address(0)) {
-			_users[msg.sender] = p.beneficiaries[msg.sender];
-		}
+		// if(users[msg.sender].beneficiary == address(0)) {
+		// 	users[msg.sender] = p.beneficiaries[msg.sender];
+		// }
 
+		// users[msg.sender].balanceDeposited += msg.value;
 		p.beneficiaries[msg.sender].balanceDeposited += msg.value;
 	}
 
-	/**
-	 * @notice Allow users to withdraw their deposit and reward if applicable
-	**/
-	function unstake() public {}
-
-	/**
-	 * @dev Deposit reward for the last open pool
-	**/
-	function depositReward(uint amount) public payable onlyTeam validDeposit(amount) {
-		_updatebalancePools(DEPOSIT_REWARD);
-	}
-
 	function _depositReward(uint poolId) private {
-		_pools[poolId].rewards += msg.value;
+		pools[poolId].rewards += msg.value;
 	}
 }
