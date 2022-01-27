@@ -16,6 +16,7 @@ contract ETHPool is Ownable {
 	UpdateBalanceMethod constant DEPOSIT_REWARD = UpdateBalanceMethod.DEPOSIT_REWARD;
 
 	event staked(address user, uint amount, uint poolId);
+	event donationReceived(address contributor, uint amount);
 
 	/// @dev General information of a user
 	struct User {
@@ -25,7 +26,7 @@ contract ETHPool is Ownable {
 
 	/// @dev User pool information
 	struct UserPool {
-		uint totalPools;
+		uint numberOfPool;
 		uint nextPoolIdToClaim;
 		/// @dev internal id => pool id
 		mapping (uint => uint) myPoolIds;
@@ -68,16 +69,19 @@ contract ETHPool is Ownable {
 		_teamMembers[msg.sender] = true;
 	}
 
-	receive() external payable {}
+	/// @notice For donations
+	receive() external payable {
+		emit donationReceived(msg.sender, msg.value);
+	}
 
 	/// @dev Add a member to the ETHPool team
 	function setTeamMember(address member) external onlyOwner {
-		require(member != address(0), "Invalid address");
+		require(member != address(0), "Address cannot be zero");
 		require(!_teamMembers[member], "Member already registered");
 		_teamMembers[member] = true;
 	}
 
-	function getUserBalancePerPoolById(address user, uint poolId) external view returns(uint) {
+	function getUserBalanceByPoolId(address user, uint poolId) external view returns(uint) {
 		return pools[poolId].beneficiaries[user].balanceDeposited;
 	}
 
@@ -102,8 +106,8 @@ contract ETHPool is Ownable {
 	**/
 	function claimReward() external view {
 		require(
-			poolUsers[msg.sender].totalPools > 0 &&
-			poolUsers[msg.sender].nextPoolIdToClaim <= poolUsers[msg.sender].totalPools,
+			poolUsers[msg.sender].numberOfPool > 0 &&
+			poolUsers[msg.sender].nextPoolIdToClaim <= poolUsers[msg.sender].numberOfPool,
 			"You have no rewards to claim"
 		);
 
@@ -172,31 +176,22 @@ contract ETHPool is Ownable {
 	}
 
 	function _stake(uint poolId) private {
-		Pool storage p = pools[poolId];
+		pools[poolId].balance += msg.value;
 
-		p.balance += msg.value;
+		if(pools[poolId].beneficiaries[msg.sender].balanceDeposited == 0) {
+			pools[poolId].beneficiaries[msg.sender].beneficiary = payable(msg.sender);
 
-		if(p.beneficiaries[msg.sender].balanceDeposited == 0) {
-			// p.beneficiaries[msg.sender].myPools.push(poolId);
-			p.beneficiaries[msg.sender].beneficiary = payable(msg.sender);
-
-			// poolUsers[msg.sender].myPools.push(poolId);
-			uint internalId = poolUsers[msg.sender].totalPools + 1;
+			uint internalId = poolUsers[msg.sender].numberOfPool + 1;
 			poolUsers[msg.sender].myPoolIds[internalId] = poolId;
 
 			if(internalId == 1) {
 				poolUsers[msg.sender].nextPoolIdToClaim = internalId;
 			}
 
-			poolUsers[msg.sender].totalPools = internalId;
+			poolUsers[msg.sender].numberOfPool = internalId;
 		}
 
-		// if(users[msg.sender].beneficiary == address(0)) {
-		// 	users[msg.sender] = p.beneficiaries[msg.sender];
-		// }
-
-		// users[msg.sender].balanceDeposited += msg.value;
-		p.beneficiaries[msg.sender].balanceDeposited += msg.value;
+		pools[poolId].beneficiaries[msg.sender].balanceDeposited += msg.value;
 	}
 
 	function _depositReward(uint poolId) private {

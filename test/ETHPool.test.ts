@@ -151,8 +151,8 @@ describe('ETHPool', () => {
         user1Balance,
         user2Balance
       ] = await Promise.all([
-        await contracts.ETHPool.getUserBalancePerPoolById(user1, user1PolId),
-        await contracts.ETHPool.getUserBalancePerPoolById(user2, user1PolId),
+        await contracts.ETHPool.getUserBalanceByPoolId(user1, user1PolId),
+        await contracts.ETHPool.getUserBalanceByPoolId(user2, user1PolId),
       ])
 
       const user1PoolData = await contracts.ETHPool.pools(user1PolId);

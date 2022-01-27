@@ -18,7 +18,7 @@ ETHPool brinda un servicio donde las personas pueden depositar ETH y recibirán 
 
 Digamos que tenemos el usuario **A** y **B** y el equipo **T**.
 
-**A** deposita 100 y **B** deposita 300 para un total de 400 en la piscina. Ahora **A** tiene el 25% del pool y **B** tiene el 75%. Cuando **T** deposita 200 recompensas, **A** debería poder retirar 150 y **B** 450.
+**A** deposita 100 y **B** deposita 300 para un total de 400 en el pool. Ahora **A** tiene el 25% del pool y **B** tiene el 75%. Cuando **T** deposita 200 recompensas, **A** debería poder retirar 150 y **B** 450.
 
 > ¿Qué pasa si sucede lo siguiente? A deposita, luego T deposita, luego B deposita, luego A retira y finalmente B retira. A debe recibir su depósito + todas las recompensas. B solo debe recibir su depósito porque las recompensas se enviaron al grupo antes de que participaran.
 
@@ -28,7 +28,7 @@ Diseñe y codifique un contrato para ETHPool, tome todas las suposiciones que ne
 Puede utilizar las herramientas de desarrollo que prefiera: Hardhat, Truffle, Brownie, Solidity, Vyper.
 
 **Recursos útiles:**
-- Documentos de solidez: [https://docs.soliditylang.org/en/v0.8.4](https://docs.soliditylang.org/en/v0.8.4)
+- Documentos de solidity: [https://docs.soliditylang.org/en/v0.8.4](https://docs.soliditylang.org/en/v0.8.4)
 
 - Recurso educativo: [https://github.com/austintgriffith/scaffold-eth](https://github.com/austintgriffith/scaffold-eth)
 
